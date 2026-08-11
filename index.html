@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>AIMVX IOS — Game Booster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Cinzel:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060b1a;
+    --bg2: #0a1228;
+    --panel: rgba(255,255,255,.04);
+    --panel-2: rgba(255,255,255,.065);
+    --border: rgba(0,136,255,.12);
+    --border-hi: rgba(0,136,255,.24);
+    --blue: #0066ff;
+    --blue-dim: #002d80;
+    --cyan: #00aaff;
+    --cyan-light: #44ccff;
+    --gold: #00ddff;
+    --success: #33ffb0;
+    --danger: #ff3f66;
+    --text: #f0f4ff;
+    --text-dim: #88bbdd;
+    --text-faint: #5577aa;
+    --font-d: 'Orbitron',sans-serif;
+    --font-b: 'Rajdhani',sans-serif;
+    --font-serif: 'Cinzel',serif;
+    --font-mono: 'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--font-b);
+    background:
+      radial-gradient(circle at 50% 0%, #0a1a3a 0%, transparent 55%),
+      radial-gradient(circle at 80% 90%, #06102a 0%, transparent 45%),
+      var(--bg);
+    color:var(--text);
+    display:flex; align-items:center; justify-content:center;
+    min-height:100vh;
+    overflow:hidden;
+    letter-spacing:.02em;
+    position:relative;
+  }
+  ::selection{ background:var(--blue); color:#fff; }
+
+  .noise{
+    position:absolute; inset:0; pointer-events:none; z-index:1;
+    opacity:.045; mix-blend-mode:overlay;
+  }
+  .carbon{
+    position:absolute; inset:0; pointer-events:none; z-index:1; opacity:.5;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.025) 0 1px, transparent 1px 4px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,.02) 0 1px, transparent 1px 4px);
+  }
+  .bg-orb{ position:fixed; border-radius:50%; filter:blur(70px); pointer-events:none; z-index:0; opacity:.35; }
+  .bg-orb.o1{ width:340px; height:340px; background:radial-gradient(circle,var(--blue),transparent 70%); top:-90px; left:-90px; animation:orbFloat 14s ease-in-out infinite; }
+  .bg-orb.o2{ width:300px; height:300px; background:radial-gradient(circle,var(--cyan),transparent 70%); bottom:-80px; right:-80px; animation:orbFloat 17s ease-in-out infinite reverse; }
+  .bg-orb.o3{ width:220px; height:220px; background:radial-gradient(circle,var(--gold),transparent 70%); top:50%; right:-60px; opacity:.18; animation:orbFloat 20s ease-in-out infinite; }
+  @keyframes orbFloat{ 0%,100%{ transform:translate(0,0); } 50%{ transform:translate(24px,-30px); } }
+
+  /* ---------- device frame ---------- */
+  .device{
+    position:relative; z-index:2;
+    width:412px; height:890px;
+    max-height:96vh;
+    background:linear-gradient(160deg,#0a1a3a,#040a18 55%,#060d20 100%);
+    border-radius:54px;
+    padding:14px;
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,.14),
+      inset 0 -1px 1px rgba(0,0,0,.5),
+      0 0 0 1px rgba(0,136,255,.08),
+      0 0 0 2px rgba(0,0,0,.5),
+      0 0 90px rgba(0,102,255,.22),
+      0 0 40px rgba(0,170,255,.06),
+      0 40px 100px rgba(0,0,0,.65);
+    overflow:hidden;
+  }
+  .device::before{
+    content:''; position:absolute; inset:0; border-radius:54px; padding:1.5px;
+    background:conic-gradient(from 180deg, rgba(0,170,255,.6), rgba(0,102,255,.15) 30%, rgba(0,200,255,.35) 55%, rgba(0,170,255,.6) 80%, rgba(0,102,255,.15) 100%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude;
+    opacity:.55; pointer-events:none;
+  }
+  .device::after{
+    content:''; position:absolute; top:-60%; left:-160%; width:120%; height:220%;
+    background:linear-gradient(75deg, transparent 40%, rgba(255,255,255,.08) 48%, rgba(255,255,255,.18) 50%, rgba(255,255,255,.08) 52%, transparent 60%);
+    animation:bezelSheen 9s ease-in-out infinite; pointer-events:none; z-index:5;
+  }
+  @keyframes bezelSheen{ 0%,60%{ transform:translateX(0) translateY(0); } 100%{ transform:translateX(260%) translateY(60%); } }
+  .screen{
+    position:relative;
+    width:100%; height:100%;
+    background:var(--bg);
+    border-radius:40px;
+    overflow:hidden;
+    border:1px solid rgba(0,136,255,.09);
+    box-shadow:inset 0 0 40px rgba(0,0,0,.5);
+  }
+  .notch{
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+    width:130px; height:26px; background:#000; border-radius:0 0 18px 18px;
+    z-index:50;
+    box-shadow:0 1px 0 rgba(255,255,255,.06);
+  }
+  .statusbar{
+    position:absolute; top:0; left:0; right:0; height:46px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 30px; font-size:14px; font-weight:600; z-index:40;
+    color:#fff; font-family:var(--font-b);
+  }
+  .statusbar .time{ letter-spacing:.03em; }
+  .statusbar .icons{ display:flex; gap:6px; align-items:center; }
+  .home-indicator{
+    position:absolute; bottom:8px; left:50%; transform:translateX(-50%);
+    width:120px; height:4px; border-radius:3px; background:rgba(255,255,255,.35);
+    z-index:50;
+  }
+
+  @media (max-width:460px){
+    .device{ width:100vw; height:100vh; max-height:100vh; border-radius:0; padding:0; box-shadow:none; }
+    .device::before{ display:none; }
+    .screen{ border-radius:0; border:none; }
+  }
+
+  /* ---------- generic screen panel ---------- */
+  .panel{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    opacity:0; pointer-events:none;
+    transition:opacity .5s ease;
+  }
+  .panel.active{ opacity:1; pointer-events:auto; }
+
+  /* ================= LOADING ================= */
+  #panel-loading{ align-items:center; justify-content:center; }
+  #panel-loading::before{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(circle at 50% 42%, rgba(0,102,255,.14), transparent 60%);
+    pointer-events:none;
+  }
+  .load-wrap{ display:flex; flex-direction:column; align-items:center; gap:30px; position:relative; }
+  .core{ position:relative; width:172px; height:172px; display:flex; align-items:center; justify-content:center; }
+  .core-outer{
+    position:absolute; inset:0; border-radius:50%;
+    border:1px dashed rgba(0,170,255,.28);
+    animation:spinSlow 22s linear infinite;
+  }
+  .core-outer2{
+    position:absolute; inset:14px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.06);
+  }
+  @keyframes spinSlow{ to{ transform:rotate(360deg); } }
+  .core svg.ring-svg{ width:150px; height:150px; transform:rotate(-90deg); position:absolute; inset:11px; }
+  .core-ring-bg{ fill:none; stroke:rgba(255,255,255,.06); stroke-width:2.5; }
+  .core-ring{ fill:none; stroke:url(#gradRing); stroke-width:2.5; stroke-linecap:round; stroke-dasharray:433; stroke-dashoffset:433; filter:drop-shadow(0 0 8px rgba(0,102,255,.9)); transition:stroke-dashoffset .15s linear; }
+  .core-hex{
+    position:relative; display:flex; align-items:center; justify-content:center;
+    animation:coreSpin 6s linear infinite, corePulse 2.4s ease-in-out infinite;
+  }
+  .core-hex svg{ width:74px; height:74px; filter:drop-shadow(0 0 12px rgba(0,170,255,.6)); }
+  @keyframes coreSpin{ to{ transform:rotate(360deg); } }
+  @keyframes corePulse{ 0%,100%{ filter:brightness(1); } 50%{ filter:brightness(1.35); } }
+  .core-pct{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:22px; font-weight:700; color:#fff;
+    text-shadow:0 0 16px rgba(0,102,255,.6);
+  }
+  .core-spark{ position:absolute; width:4px; height:4px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold); }
+  .brand-wrap{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .brand-word{
+    font-family:var(--font-d); font-weight:900; font-size:31px;
+    letter-spacing:.22em;
+    background:linear-gradient(100deg,#fff 10%,var(--gold) 35%,var(--cyan) 65%,var(--blue) 90%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    filter:drop-shadow(0 0 14px rgba(0,170,255,.25));
+    display:flex;
+  }
+  .brand-word span{ display:inline-block; opacity:0; transform:translateY(10px); animation:letterIn .5s forwards; }
+  @keyframes letterIn{ to{ opacity:1; transform:translateY(0); } }
+  .brand-rule{ width:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); animation:ruleGrow 1s .9s forwards ease; }
+  @keyframes ruleGrow{ to{ width:120px; } }
+  .brand-sub{ font-size:12.5px; letter-spacing:.5em; text-indent:.5em; color:var(--text-dim); font-weight:600; opacity:0; animation:fadeUp .6s 1.1s forwards; }
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(6px);} to{ opacity:1; transform:translateY(0);} }
+  .brand-edition{
+    font-family:var(--font-serif); font-size:10.5px; letter-spacing:.14em; color:var(--gold);
+    opacity:0; animation:fadeUp .6s 1.35s forwards;
+  }
+  .brand-edition b{ font-family:var(--font-mono); font-weight:600; letter-spacing:.04em; }
+  .load-status{ font-size:12.5px; color:var(--text-faint); min-height:18px; letter-spacing:.06em; }
+  .load-bar-track{ position:relative; width:220px; height:2px; border-radius:3px; background:rgba(255,255,255,.07); overflow:visible; }
+  .load-bar-fill{ position:relative; height:100%; width:0%; border-radius:3px; background:linear-gradient(90deg,var(--blue),var(--cyan)); transition:width .15s linear; }
+  .load-bar-fill::after{
+    content:''; position:absolute; right:-2px; top:50%; transform:translateY(-50%);
+    width:7px; height:7px; border-radius:50%; background:var(--gold); box-shadow:0 0 10px var(--gold), 0 0 20px rgba(0,170,255,.6);
+  }
+
+  /* ================= LOGIN ================= */
+  #panel-login{ align-items:center; justify-content:center; padding:40px 34px; }
+  .login-card{ width:100%; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .login-hex{ width:56px; height:56px; margin-bottom:10px; filter:drop-shadow(0 0 12px rgba(0,102,255,.6)); }
+  .login-title{ font-family:var(--font-serif); font-size:19px; letter-spacing:.2em; font-weight:600; color:var(--gold); }
+  .login-sub{ font-size:14px; color:var(--text-dim); margin-top:6px; margin-bottom:30px; text-align:center; }
+  .field{ width:100%; margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; letter-spacing:.12em; color:var(--text-faint); margin-bottom:7px; text-transform:uppercase; font-weight:600;}
+  .field input{
+    width:100%; background:rgba(255,255,255,.04); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border:1px solid var(--border); color:var(--text);
+    padding:14px 16px; border-radius:14px; font-family:var(--font-b); font-size:16px; font-weight:600;
+    letter-spacing:.06em; outline:none; transition:border-color .2s, box-shadow .2s;
+  }
+  .field input:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(0,170,255,.16); }
+  .btn{
+    appearance:none; border:none; cursor:pointer; font-family:var(--font-b); font-weight:700;
+    letter-spacing:.06em; border-radius:14px; transition:transform .15s ease, filter .15s ease, box-shadow .2s ease;
+    position:relative; overflow:hidden;
+  }
+  .btn:active{ transform:scale(.97); }
+  .btn:disabled{ opacity:.6; cursor:not-allowed; }
+  .btn-primary{
+    width:100%; padding:15px; margin-top:8px; font-size:16px; color:#020a17;
+    background:linear-gradient(90deg,var(--cyan),var(--blue));
+    box-shadow:0 8px 24px rgba(0,102,255,.35), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .btn-primary::after, .mini-btn.run::after, .cta-gold-inner::before{
+    content:''; position:absolute; top:0; left:-60%; width:40%; height:100%;
+    background:linear-gradient(100deg, transparent, rgba(255,255,255,.5), transparent);
+    transform:skewX(-20deg); animation:shine 3.2s ease-in-out infinite;
+  }
+  @keyframes shine{ 0%{ left:-60%; } 35%{ left:130%; } 100%{ left:130%; } }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .login-error{
+    font-size:13px; color:var(--danger); min-height:16px; margin-top:14px; opacity:0; transition:opacity .2s;
+  }
+  .login-error.show{ opacity:1; }
+  .shake{ animation:shakeAnim .4s; }
+  @keyframes shakeAnim{ 10%,90%{transform:translateX(-2px);} 20%,80%{transform:translateX(4px);} 30%,50%,70%{transform:translateX(-8px);} 40%,60%{transform:translateX(8px);} }
+  .login-hint{ margin-top:26px; font-size:11px; color:var(--text-faint); text-align:center; line-height:1.7; letter-spacing:.03em; font-family:var(--font-mono); }
+  .login-hint b{ color:var(--gold); }
+  .login-foot{ position:absolute; bottom:34px; left:0; right:0; text-align:center; font-size:11px; letter-spacing:.28em; text-indent:.28em; color:var(--text-faint); }
+
+  /* ================= MAIN ================= */
+  #panel-main{ overflow-y:auto; padding-bottom:30px; }
+  #panel-main::-webkit-scrollbar{ display:none; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:56px 20px 16px; position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg, var(--bg) 70%, transparent);
+  }
+  .topbar::after{
+    content:''; position:absolute; left:20px; right:20px; bottom:2px; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(0,170,255,.4),transparent);
+  }
+  .topbar-left{ display:flex; align-items:center; gap:10px; }
+  .topbar-logo{ width:30px; height:30px; }
+  .topbar-word{ font-family:var(--font-serif); font-size:13.5px; font-weight:600; letter-spacing:.22em; color:var(--text); }
+  .status-chip{
+    display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--border);
+    padding:6px 11px 6px 9px; border-radius:100px; font-size:12px; font-weight:600; color:var(--text-dim);
+  }
+  .dot-pulse{ width:7px; height:7px; border-radius:50%; background:var(--success); box-shadow:0 0 8px var(--success); animation:pulse 1.6s infinite; }
+  @keyframes pulse{ 0%,100%{ opacity:1;} 50%{ opacity:.35;} }
+
+  .section{ padding:6px 20px 0; }
+  .section-title{
+    font-size:11px; letter-spacing:.2em; text-indent:.1em; text-transform:uppercase; color:var(--text-faint);
+    font-weight:600; margin:24px 0 10px 2px; display:flex; align-items:center; gap:8px;
+    font-family:var(--font-serif);
+  }
+  .section-title::before{ content:''; width:12px; height:1.5px; background:linear-gradient(90deg,var(--gold),transparent); border-radius:2px; }
+
+  .stat-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .stat-card{
+    position:relative;
+    background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.018));
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border); border-radius:19px; padding:16px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06), 0 6px 18px rgba(0,0,0,.25);
+  }
+  .stat-card::before{
+    content:''; position:absolute; inset:0; border-radius:19px; padding:1px;
+    background:linear-gradient(160deg, rgba(0,170,255,.35), transparent 40%, transparent 60%, rgba(0,170,255,.18));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
+  }
+  .stat-meta .stat-label{ font-size:11px; color:var(--text-faint); letter-spacing:.1em; font-weight:600; font-family:var(--font-serif); }
+  .stat-meta .stat-value{ font-size:16px; font-weight:700; margin-top:3px; font-family:var(--font-mono); }
+  .stat-meta .stat-value.good{ color:var(--success); }
+  .stat-meta .stat-value.online{ color:var(--success); }
+
+  .card{
+    position:relative;
+    background:linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.015));
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--border); border-radius:19px;
+    padding:16px; margin-bottom:12px; display:flex; align-items:center; gap:14px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 8px 20px rgba(0,0,0,.28);
+    transition:border-color .2s, background .2s, transform .15s;
+  }
+  .card::before{
+    content:''; position:absolute; inset:0; border-radius:19px; padding:1px;
+    background:linear-gradient(150deg, rgba(0,170,255,.3), transparent 35%, transparent 65%, rgba(0,170,255,.14));
+    -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor; mask-composite:exclude; pointer-events:none;
+  }
+  .card:active{ transform:scale(.99); }
+  .icon-wrap{
+    width:44px; height:44px; border-radius:13px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(145deg, rgba(0,102,255,.22), rgba(0,170,255,.08));
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:inset 0 1.5px 0 rgba(255,255,255,.25), inset 0 -1.5px 3px rgba(0,0,0,.35), 0 4px 10px rgba(0,0,0,.3);
+  }
+  .icon-wrap svg{ width:22px; height:22px; stroke:var(--cyan); }
+  .card-body{ flex:1; min-width:0; }
+  .card-title{ font-size:15px; font-weight:700; }
+  .card-sub{ font-size:12.5px; color:var(--text-faint); margin-top:2px; font-weight:500; }
+  .card-action{ flex:none; }
+
+  .mini-btn{
+    padding:9px 16px; font-size:12.5px; border-radius:11px; background:var(--panel-2); color:var(--text);
+    border:1px solid var(--border-hi); position:relative; overflow:hidden;
+  }
+  .mini-btn.run{ background:linear-gradient(90deg,var(--blue),var(--cyan)); color:#020a17; border:none; font-weight:700; box-shadow:0 4px 14px rgba(0,102,255,.35), inset 0 1px 0 rgba(255,255,255,.4); }
+  .mini-btn.done{ background:rgba(51,255,176,.12); color:var(--success); border:1px solid rgba(51,255,176,.3); }
+
+  .toggle{ width:48px; height:28px; border-radius:100px; background:var(--panel-2); border:1px solid var(--border-hi); position:relative; cursor:pointer; flex:none; transition:box-shadow .3s; }
+  .toggle .knob{ position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:#9096ac; transition:all .25s cubic-bezier(.4,0,.2,1); box-shadow:0 1px 3px rgba(0,0,0,.4); }
+  .toggle.on{ background:linear-gradient(90deg,var(--blue),var(--cyan)); border-color:transparent; box-shadow:0 0 14px rgba(0,102,255,.55); }
+  .toggle.on .knob{ left:22px; background:#fff; box-shadow:0 0 8px rgba(255,255,255,.7); }
+
+  .cta-gold{
+    margin:6px 20px 4px; padding:2px; border-radius:21px; position:relative; overflow:hidden;
+    cursor:pointer;
+    box-shadow:0 14px 34px rgba(0,170,255,.16);
+  }
+  .cta-gold::before{
+    content:''; position:absolute; inset:-40%; z-index:0;
+    background:conic-gradient(from 0deg, var(--gold), #041a3a 30%, var(--gold) 55%, #041a3a 80%, var(--gold) 100%);
+    animation:vipRotate 5s linear infinite;
+  }
+  .cta-gold::after{
+    content:''; position:absolute; inset:2px; z-index:0; border-radius:19px;
+    background:linear-gradient(135deg,#06122a,#020818 70%);
+  }
+  @keyframes vipRotate{ to{ transform:rotate(360deg); } }
+  .cta-gold-inner{
+    position:relative; z-index:1; overflow:hidden; border-radius:19px;
+    padding:20px; display:flex; align-items:center; gap:16px;
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+  }
+  .vip-tag{
+    position:absolute; top:10px; right:14px; z-index:2; font-family:var(--font-serif); font-size:9px; letter-spacing:.14em;
+    color:#020a17; background:linear-gradient(90deg,var(--gold),#cceeff); padding:3px 9px; border-radius:100px; font-weight:600;
+  }
+  .cta-gold-inner::after{
+    content:''; position:absolute; inset:0;
+    background:radial-gradient(circle at 85% 20%, rgba(0,170,255,.25), transparent 55%);
+  }
+  .cta-gold-inner .icon-wrap{ background:linear-gradient(145deg, rgba(0,170,255,.35), rgba(0,170,255,.08)); border-color:rgba(0,170,255,.4); }
+  .cta-gold-inner .card-title{ color:var(--gold); font-family:var(--font-d); font-size:14.5px; letter-spacing:.08em; }
+  .cta-gold-inner .card-sub{ color:#88bbdd; }
+  .cta-arrow{ color:var(--gold); font-size:20px; }
+
+  /* ---------- bottom sheet ---------- */
+  .sheet-backdrop{
+    position:absolute; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(3px);
+    opacity:0; pointer-events:none; transition:opacity .3s; z-index:60;
+  }
+  .sheet-backdrop.show{ opacity:1; pointer-events:auto; }
+  .sheet{
+    position:absolute; left:0; right:0; bottom:0; background:rgba(8,14,28,.92); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    border:1px solid var(--border-hi);
+    border-bottom:none; border-radius:26px 26px 0 0; padding:22px 20px 34px; transform:translateY(100%);
+    transition:transform .35s cubic-bezier(.16,1,.3,1); z-index:61;
+    box-shadow:0 -10px 40px rgba(0,0,0,.4);
+  }
+  .sheet::before{
+    content:''; position:absolute; top:0; left:26px; right:26px; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(0,170,255,.5),transparent);
+  }
+  .sheet-backdrop.show .sheet{ transform:translateY(0); }
+  .sheet-handle{ width:38px; height:4px; background:rgba(255,255,255,.2); border-radius:3px; margin:0 auto 18px; }
+  .sheet-title{ font-family:var(--font-d); font-size:15px; letter-spacing:.1em; margin-bottom:4px; }
+  .sheet-sub{ font-size:13px; color:var(--text-faint); margin-bottom:20px; }
+  .game-opt{
+    display:flex; align-items:center; gap:14px; padding:14px; border-radius:16px; border:1px solid var(--border);
+    background:rgba(255,255,255,.04); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    margin-bottom:12px; cursor:pointer; transition:border-color .2s, transform .15s;
+  }
+  .game-opt:active{ transform:scale(.98); }
+  .game-opt:hover{ border-color:var(--border-hi); }
+  .game-badge{
+    width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-d); font-weight:900; font-size:15px; color:#fff; flex:none;
+  }
+  .badge-ff{ background:linear-gradient(145deg,#0066ff,#0033aa); }
+  .badge-ffm{ background:linear-gradient(145deg,#00aaff,#0055cc); }
+  .game-name{ font-size:15px; font-weight:700; }
+  .game-scheme{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
+
+  /* ---------- process overlay ---------- */
+  .overlay{
+    position:absolute; inset:0; background:rgba(4,10,22,.84); backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px;
+    opacity:0; pointer-events:none; transition:opacity .3s; z-index:70; padding:30px; text-align:center;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .proc-ring{ position:relative; width:130px; height:130px; }
+  .proc-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .proc-bg{ fill:none; stroke:rgba(255,255,255,.07); stroke-width:4; }
+  .proc-fg{ fill:none; stroke:url(#gradRing2); stroke-width:4; stroke-linecap:round; stroke-dasharray:377; stroke-dashoffset:377; transition:stroke-dashoffset .1s linear; filter:drop-shadow(0 0 6px rgba(0,170,255,.7)); }
+  .proc-icon{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .proc-icon svg{ width:44px; height:44px; }
+  .proc-label{ font-family:var(--font-d); font-size:14px; letter-spacing:.08em; }
+  .proc-detail{ font-size:13px; color:var(--text-faint); min-height:18px; }
+  .proc-check{ width:70px; height:70px; }
+
+  .toast{
+    position:absolute; left:20px; right:20px; bottom:26px; background:#0a1428; border:1px solid var(--border-hi);
+    border-radius:16px; padding:14px 16px; display:flex; align-items:center; gap:12px;
+    transform:translateY(140%); transition:transform .4s cubic-bezier(.16,1,.3,1); z-index:80;
+    box-shadow:0 10px 30px rgba(0,0,0,.5);
+  }
+  .toast.show{ transform:translateY(0); }
+  .toast-icon{ width:34px; height:34px; border-radius:10px; background:rgba(51,255,176,.15); display:flex; align-items:center; justify-content:center; flex:none; }
+  .toast-icon svg{ width:18px; height:18px; }
+  .toast-text b{ display:block; font-size:13.5px; }
+  .toast-text span{ font-size:12px; color:var(--text-faint); }
+
+  .fade-slide-enter{ animation:fadeSlide .5s ease; }
+  @keyframes fadeSlide{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:translateY(0);} }
+</style>
+</head>
+<body>
+
+<div class="carbon"></div>
+<div class="bg-orb o1"></div>
+<div class="bg-orb o2"></div>
+<div class="bg-orb o3"></div>
+
+<div class="device">
+  <div class="screen" id="screen">
+    <svg class="noise" viewBox="0 0 200 200" preserveAspectRatio="none">
+      <filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/></filter>
+      <rect width="100%" height="100%" filter="url(#noiseFilter)"/>
+    </svg>
+    <div class="notch"></div>
+    <div class="statusbar">
+      <div class="time" id="clock">9:41</div>
+    </div>
+
+    <!-- SVG defs -->
+    <svg width="0" height="0">
+      <defs>
+        <linearGradient id="gradRing" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#00aaff"/>
+          <stop offset="100%" stop-color="#0066ff"/>
+        </linearGradient>
+        <linearGradient id="gradRing2" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#00aaff"/>
+          <stop offset="100%" stop-color="#0066ff"/>
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <!-- ================= LOADING PANEL ================= -->
+    <div class="panel active" id="panel-loading">
+      <div class="load-wrap">
+        <div class="core">
+          <div class="core-outer"></div>
+          <div class="core-outer2"></div>
+          <svg class="ring-svg" viewBox="0 0 150 150">
+            <circle class="core-ring-bg" cx="75" cy="75" r="69"/>
+            <circle class="core-ring" id="loadRing" cx="75" cy="75" r="69"/>
+          </svg>
+          <div class="core-spark" style="top:6px; left:50%;"></div>
+          <div class="core-spark" style="bottom:14px; right:20px;"></div>
+          <div class="core-hex">
+            <svg viewBox="0 0 100 100">
+              <polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="#0066ff" stroke-width="3"/>
+              <polygon points="50,22 78,36 78,64 50,78 22,64 22,36" fill="none" stroke="#00aaff" stroke-width="2.5"/>
+              <polygon points="50,38 63,45 63,55 50,62 37,55 37,45" fill="rgba(0,170,255,.5)" stroke="#00ddff" stroke-width="1"/>
+            </svg>
+          </div>
+          <div class="core-pct" id="loadPct">0%</div>
+        </div>
+        <div class="brand-wrap">
+          <div class="brand-word" id="brandWord"></div>
+          <div class="brand-rule"></div>
+          <div class="brand-sub">AIMVX IOS · PREMIUM</div>
+          <div class="brand-edition">DEVICE ID <b id="editionNo">—</b></div>
+        </div>
+        <div class="load-bar-track"><div class="load-bar-fill" id="loadBar"></div></div>
+        <div class="load-status" id="loadStatus">Menyiapkan modul inti…</div>
+      </div>
+    </div>
+
+    <!-- ================= LOGIN PANEL ================= -->
+    <div class="panel" id="panel-login">
+      <div class="login-card">
+        <svg class="login-hex" viewBox="0 0 100 100"><polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="#0066ff" stroke-width="4"/><polygon points="50,22 78,36 78,64 50,78 22,64 22,36" fill="none" stroke="#00aaff" stroke-width="3"/></svg>
+        <div class="login-title">AIMVX IOS ACCESS</div>
+        <div class="login-sub">Masukkan license key untuk mengaktifkan<br>TOOLS INJECT IOS</div>
+
+        <div class="field">
+          <label>User</label>
+          <input type="text" id="inpUser" placeholder="Masukkan User Anda" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>License Key</label>
+          <input type="password" id="inpKey" placeholder="NEXOR-XXXX-XXXX-XXXX" autocomplete="off">
+        </div>
+        <button class="btn btn-primary" id="btnLogin">MASUK</button>
+        <div class="login-error" id="loginError"></div>
+
+        <div class="login-hint">Belum punya key? &nbsp;<b>CONTACT DEV FOR GET UR KEY</b></div>
+      </div>
+      <div class="login-foot">RANZY DEV</div>
+    </div>
+
+    <!-- ================= MAIN PANEL ================= -->
+    <div class="panel" id="panel-main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <svg class="topbar-logo" viewBox="0 0 100 100"><polygon points="50,4 93,27 93,73 50,96 7,73 7,27" fill="none" stroke="#0066ff" stroke-width="6"/><polygon points="50,26 74,38 74,62 50,74 26,62 26,38" fill="none" stroke="#00aaff" stroke-width="5"/></svg>
+          <div class="topbar-word">AIMVX IOS SYSTEM BY RANZYNEXOR</div>
+        </div>
+        <div class="status-chip"><div class="dot-pulse"></div>ACTIVATE DEVICE ID :0098</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Status Sistem</div>
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="icon-wrap" style="width:54px;height:54px;border-radius:50%;">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M2 8.5C7 3.8 17 3.8 22 8.5" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 12C9 8.8 15 8.8 18.5 12" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><path d="M9 15.5C10.9 13.8 13.1 13.8 15 15.5" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="19" r="1.4" fill="#00aaff"/></svg>
+            </div>
+            <div class="stat-meta"><div class="stat-label">LATENCY</div><div class="stat-value good" id="latVal">— ms</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="icon-wrap" style="width:54px;height:54px;border-radius:50%;">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#33ffb0" stroke-width="1.8"/><path d="M8.5 12.3l2.3 2.3 4.7-4.9" stroke="#33ffb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="stat-meta"><div class="stat-label">STATUS</div><div class="stat-value online">Terhubung</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Pembersihan</div>
+        <div class="card" id="cardCleaner">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><path d="M4 20l5-5M14 5l5 5-9.5 9.5a2 2 0 01-2.8 0L4 17.8a2 2 0 010-2.8L14 5z" stroke="#00aaff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M13 4l3 3" stroke="#0066ff" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">Cleaner Cache &amp; Junk File</div>
+            <div class="card-sub" id="cleanerSub">Bersihkan cache aplikasi & file sampah</div>
+          </div>
+          <div class="card-action"><button class="mini-btn run" id="btnCleaner">Bersihkan</button></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Optimasi</div>
+
+        <div class="card">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" fill="#0066ff"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1" stroke="#0066ff" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">LOW LATENCY TOUCH</div>
+            <div class="card-sub">BERFUNGSI SEBAGAI RESPONSIVE TOUCH AND REDUCE LOW LATENCY TOUCH IOS</div>
+          </div>
+          <div class="card-action"><div class="toggle" id="toggleTouch"><div class="knob"></div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v13" stroke="#00ddff" stroke-width="1.7" stroke-linecap="round"/><path d="M7.5 12l4.5 4.5L16.5 12" stroke="#00ddff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><rect x="5" y="19" width="14" height="2.4" rx="1.2" fill="#00ddff"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">CHANGE PIXEL IOS</div>
+            <div class="card-sub">PIXEL DRAG IOS V1 &amp; GUNAKAN UNTUK MENGURANGI PIXEL IOSA DAN DAPAT MENAMBAH RASIO HS ANDA</div>
+          </div>
+          <div class="card-action"><div class="toggle" id="toggleDrag"><div class="knob"></div></div></div>
+        </div>
+
+        <div class="card" id="cardWifi">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><path d="M2 8.5C7 3.8 17 3.8 22 8.5" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 12C9 8.8 15 8.8 18.5 12" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><path d="M9 15.5C10.9 13.8 13.1 13.8 15 15.5" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="19" r="1.4" fill="#00aaff"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">OPTIMISASI NETWOPRK WIFI ALL PROVIDER HOME</div>
+            <div class="card-sub" id="wifiSub">Kurangi lag pada koneksi WiFi</div>
+          </div>
+          <div class="card-action"><button class="mini-btn run" id="btnWifi">Optimalkan</button></div>
+        </div>
+
+        <div class="card" id="cardData">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2.5" stroke="#0066ff" stroke-width="1.6"/><path d="M10 18h4" stroke="#0066ff" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">OPTIMISASI NETWORK DATA ALL PROVIDER </div>
+            <div class="card-sub" id="dataSub">Stabilkan koneksi data seluler</div>
+          </div>
+          <div class="card-action"><button class="mini-btn run" id="btnData">Optimalkan</button></div>
+        </div>
+
+        <div class="card">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h7l-1 8 10-13h-7l1-7z" fill="none" stroke="#00ddff" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">FPS BOOSTER V2</div>
+            <div class="card-sub">TINGKATKAN FPS KALIAN DENGAN MENGGUNAKAN FPS BOOSTER</div>
+          </div>
+          <div class="card-action"><div class="toggle" id="toggleFps"><div class="knob"></div></div></div>
+        </div>
+
+        <!-- FITUR AIMDRAG HS, FIX RECOIL, STABILIZER, SENSITIVITY MAX, NEW HEADLOCK-->
+        <div class="section-title">Aim &amp; Recoil Control</div>
+
+        <div class="card">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#00ddff" stroke-width="1.6"/><path d="M12 3v18M3 12h18" stroke="#00ddff" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">AIMBOT DRAG AI</div>
+            <div class="card-sub">BERFUNGSI SEBAGAI MEMPERMUDAH HS DENGAN BANTUAN SYSTEM AI DRAG</div>
+          </div>
+          <div class="card-action"><div class="toggle" id="toggleAimdrag"><div class="knob"></div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2v20M4 6l16 12M4 18l16-12" stroke="#0066ff" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">REDUCE RECOIL AIM</div>
+            <div class="card-sub">MENGURANGI LATENCY AIM DAN MENAMBAH AKURASI SAAT MENEMBAK</div>
+          </div>
+          <div class="card-action"><div class="toggle" id="toggleRecoil"><div class="knob"></div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2-3 2 3 2-3 2 3 4-3" stroke="#33ffb0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">REDUCE JITTER AIM</div>
+            <div class="card-sub">MENGURANGI GETARAN SAAT PELURU KELUAR</div>
+          </div>
+          <div class="card-action"><div class="toggle" id="toggleStabilizer"><div class="knob"></div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#00aaff" stroke-width="1.6"/><path d="M8 8l8 8M8 16l8-8" stroke="#00aaff" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">MAX SENSITIVITY PIXEL</div>
+            <div class="card-sub">AKTIFKAN FITUR INI JIKA ANDA MEMBUTUHKAN KELICINAN LAYAR DAN RESPONSIF</div>
+          </div>
+          <div class="card-action"><div class="toggle" id="toggleSensitivity"><div class="knob"></div></div></div>
+        </div>
+
+        <!-- HEADLOCK 55% -->
+        <div class="card">
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#00ddff" stroke-width="1.6"/><path d="M8 5v14M16 5v14" stroke="#00ddff" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="12" r="3" fill="#0066ff"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">NEW HEADLOCK</div>
+            <div class="card-sub">MENINGKATKAN AKURASI AIM KE ARAH KEPALA LAWAN</div>
+          </div>
+          <div class="card-action"><div class="toggle" id="toggleHeadlock"><div class="knob"></div></div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">GAMESPACES IOS</div>
+      </div>
+      <div class="cta-gold" id="btnBoosterGame">
+        <div class="cta-gold-inner">
+          <span class="vip-tag">VIP</span>
+          <div class="icon-wrap"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h7l-1 8 10-13h-7l1-7z" fill="#00ddff"/></svg></div>
+          <div class="card-body">
+            <div class="card-title">BOOSTER UR GAME</div>
+            <div class="card-sub">Certified Performance Enhancement — AIMVX IOS × RANZY DEV</div>
+          </div>
+          <div class="cta-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ BOTTOM SHEET: pilih game ============ -->
+    <div class="sheet-backdrop" id="sheetBackdrop">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">PILIH GAME</div>
+        <div class="sheet-sub">Booster akan dijalankan sebelum game dibuka</div>
+        <div class="game-opt" data-game="ff">
+          <div class="game-badge badge-ff">FF</div>
+          <div>
+            <div class="game-name">Free Fire</div>
+            <div class="game-scheme">Battle royale • siap diluncurkan</div>
+          </div>
+        </div>
+        <div class="game-opt" data-game="ffm">
+          <div class="game-badge badge-ffm">FFM</div>
+          <div>
+            <div class="game-name">Free Fire MAX</div>
+            <div class="game-scheme">Grafis tinggi • siap diluncurkan</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ PROCESS OVERLAY ============ -->
+    <div class="overlay" id="overlay">
+      <div class="proc-ring">
+        <svg viewBox="0 0 130 130">
+          <circle class="proc-bg" cx="65" cy="65" r="60"/>
+          <circle class="proc-fg" id="procRing" cx="65" cy="65" r="60"/>
+        </svg>
+        <div class="proc-icon" id="procIcon">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 20l5-5M14 5l5 5-9.5 9.5a2 2 0 01-2.8 0L4 17.8a2 2 0 010-2.8L14 5z" stroke="#00aaff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+      <div class="proc-label" id="procLabel">MEMBERSIHKAN CACHE</div>
+      <div class="proc-detail" id="procDetail">Menganalisis file sistem…</div>
+    </div>
+
+    <!-- ============ TOAST ============ -->
+    <div class="toast" id="toast">
+      <div class="toast-icon"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#33ffb0" stroke-width="1.8"/><path d="M8.5 12.3l2.3 2.3 4.7-4.9" stroke="#33ffb0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="toast-text"><b id="toastTitle">Selesai</b><span id="toastSub">Proses berhasil</span></div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* ===================== CLOCK ===================== */
+function updateClock(){
+  const d=new Date();
+  const h=d.getHours().toString().padStart(2,'0');
+  const m=d.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clock').textContent = h+':'+m;
+}
+updateClock(); setInterval(updateClock,15000);
+
+/* ===================== SOUND ENGINE ===================== */
+let actx=null;
+function ac(){ if(!actx){ actx = new (window.AudioContext||window.webkitAudioContext)(); } return actx; }
+function tone(freq,dur,type='sine',vol=0.18,delay=0,glideTo=null){
+  const c=ac(); const t0=c.currentTime+delay;
+  const osc=c.createOscillator(); const gain=c.createGain();
+  osc.type=type; osc.frequency.setValueAtTime(freq,t0);
+  if(glideTo) osc.frequency.exponentialRampToValueAtTime(glideTo,t0+dur);
+  gain.gain.setValueAtTime(0,t0);
+  gain.gain.linearRampToValueAtTime(vol,t0+0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  osc.connect(gain); gain.connect(c.destination);
+  osc.start(t0); osc.stop(t0+dur+0.02);
+}
+function sndClick(){ tone(720,0.07,'triangle',0.14); tone(1080,0.05,'triangle',0.08,0.02); }
+function sndToggleOn(){ tone(500,0.09,'sine',0.15); tone(900,0.1,'sine',0.12,0.06); }
+function sndToggleOff(){ tone(500,0.09,'sine',0.13,0,320); }
+function sndSuccess(){ tone(660,0.12,'sine',0.16); tone(880,0.14,'sine',0.16,0.11); tone(1180,0.18,'sine',0.17,0.22); }
+function sndTick(){ tone(1500,0.03,'square',0.05); }
+function sndWhoosh(){ tone(180,0.5,'sawtooth',0.1,0,900); }
+let tickInterval=null;
+function startTicking(){ stopTicking(); tickInterval=setInterval(sndTick, 260); }
+function stopTicking(){ if(tickInterval){ clearInterval(tickInterval); tickInterval=null; } }
+
+/* ===================== SCREEN NAV ===================== */
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ===================== BRAND LETTER REVEAL ===================== */
+(function(){
+  const word='AIMVX IOS';
+  const el=document.getElementById('brandWord');
+  el.innerHTML = word.split('').map((ch,i)=>`<span style="animation-delay:${0.15+i*0.09}s">${ch}</span>`).join('');
+  const serial = Math.floor(Math.random()*9000+1000);
+  document.getElementById('editionNo').textContent = '0'+serial;
+})();
+
+/* ===================== LOADING SEQUENCE ===================== */
+const loadMessages=[
+  'Menyiapkan modul inti…',
+  'Memuat driver grafis…',
+  'Menghubungkan ke server AIMVX IOS…',
+  'Mengkalibrasi sensor performa…',
+  'Hampir siap…'
+];
+(function runLoading(){
+  const ring=document.getElementById('loadRing');
+  const bar=document.getElementById('loadBar');
+  const pct=document.getElementById('loadPct');
+  const status=document.getElementById('loadStatus');
+  const circumference=433;
+  let progress=0;
+  let msgIdx=0;
+  status.textContent=loadMessages[0];
+  const msgTimer=setInterval(()=>{
+    msgIdx=(msgIdx+1)%loadMessages.length;
+    status.textContent=loadMessages[msgIdx];
+  },620);
+
+  const totalDuration=2900;
+  const stepTime=30;
+  const steps=totalDuration/stepTime;
+  let step=0;
+  const timer=setInterval(()=>{
+    step++;
+    progress=Math.min(100, Math.round((step/steps)*100));
+    pct.textContent=progress+'%';
+    bar.style.width=progress+'%';
+    ring.style.strokeDashoffset = circumference - (circumference*progress/100);
+    if(progress>=100){
+      clearInterval(timer);
+      clearInterval(msgTimer);
+      status.textContent='Siap digunakan';
+      setTimeout(()=>{ showPanel('panel-login'); }, 400);
+    }
+  }, stepTime);
+})();
+
+/* ===================== SUPABASE CONFIG ===================== */
+const SUPABASE_URL = "https://zdtnrsafgamxfynfukev.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_qZiUH6kpDOgoHTmDFZyDuw_mwsoWE-q";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ===================== DEVICE ID ===================== */
+function getDeviceId(){
+  let id = localStorage.getItem('nexor_device_id');
+  if(!id){
+    id = 'dev-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('nexor_device_id', id);
+  }
+  return id;
+}
+
+/* ===================== LOGIN ===================== */
+document.getElementById('btnLogin').addEventListener('click', async ()=>{
+  sndClick();
+  const u = document.getElementById('inpUser').value.trim();
+  const k = document.getElementById('inpKey').value.trim();
+  const err = document.getElementById('loginError');
+  const btn = document.getElementById('btnLogin');
+
+  if(!k){
+    showLoginError('Masukkan license key.');
+    return;
+  }
+
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'MEMERIKSA...';
+
+  try{
+    const { data, error } = await sb
+      .from('licenses')
+      .select('*')
+      .eq('license_key', k)
+      .maybeSingle();
+
+    if(error) throw error;
+
+    if(!data){
+      showLoginError('Key tidak ditemukan.');
+      return;
+    }
+
+    if(data.status === 'banned'){
+      showLoginError('Key ini telah diblokir.');
+      return;
+    }
+
+    const deviceId = getDeviceId();
+
+    if(!data.device_id){
+      const { error: updateErr } = await sb
+        .from('licenses')
+        .update({ device_id: deviceId, status: 'active', username: u || data.username })
+        .eq('id', data.id);
+
+      if(updateErr) throw updateErr;
+
+    } else if(data.device_id !== deviceId){
+      showLoginError('Key sudah digunakan di device lain.');
+      return;
+    } else if(data.status !== 'active'){
+      showLoginError('Key tidak aktif. Hubungi admin.');
+      return;
+    }
+
+    err.classList.remove('show');
+    sndSuccess();
+    setTimeout(()=>{
+      showPanel('panel-main');
+      startLiveStats();
+    }, 200);
+
+  }catch(e){
+    console.error(e);
+    showLoginError('Gagal terhubung ke server. Coba lagi.');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+
+  function showLoginError(msg){
+    err.textContent = msg;
+    err.classList.add('show');
+    const card = document.querySelector('.login-card');
+    card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+    tone(220,0.18,'square',0.1);
+  }
+});
+
+/* ===================== LIVE STATS ===================== */
+let statsStarted=false;
+function refreshStats(){
+  const lat=10+Math.round(Math.random()*18);
+  document.getElementById('latVal').textContent=lat+' ms';
+}
+function startLiveStats(){
+  if(statsStarted) return; statsStarted=true;
+  refreshStats();
+  setInterval(refreshStats, 2800);
+}
+
+/* ===================== PROCESS OVERLAY ===================== */
+function runProcess({label, detailSteps, duration, iconSvg, onDone}){
+  return new Promise(resolve=>{
+    const overlay=document.getElementById('overlay');
+    const ring=document.getElementById('procRing');
+    const lbl=document.getElementById('procLabel');
+    const det=document.getElementById('procDetail');
+    const icon=document.getElementById('procIcon');
+    if(iconSvg) icon.innerHTML=iconSvg;
+    lbl.textContent=label;
+    const circumference=377;
+    ring.style.strokeDashoffset=circumference;
+    overlay.classList.add('show');
+    startTicking();
+
+    let detailIdx=0;
+    det.textContent=detailSteps[0];
+    const detailTimer=setInterval(()=>{
+      detailIdx=(detailIdx+1)%detailSteps.length;
+      det.textContent=detailSteps[detailIdx];
+    }, Math.max(500, duration/detailSteps.length));
+
+    const stepTime=30;
+    const steps=duration/stepTime;
+    let step=0;
+    const timer=setInterval(()=>{
+      step++;
+      const progress=Math.min(1, step/steps);
+      ring.style.strokeDashoffset = circumference - circumference*progress;
+      if(progress>=1){
+        clearInterval(timer);
+        clearInterval(detailTimer);
+        stopTicking();
+        sndSuccess();
+        icon.innerHTML='<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#33ffb0" stroke-width="1.8"/><path d="M7.5 12.3l3 3 6-6.4" stroke="#33ffb0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        det.textContent='Selesai';
+        setTimeout(()=>{
+          overlay.classList.remove('show');
+          if(onDone) onDone();
+          resolve();
+        }, 550);
+      }
+    }, stepTime);
+  });
+}
+function showToast(title,sub){
+  const t=document.getElementById('toast');
+  document.getElementById('toastTitle').textContent=title;
+  document.getElementById('toastSub').textContent=sub;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ===================== CLEANER ===================== */
+document.getElementById('btnCleaner').addEventListener('click', async ()=>{
+  sndClick();
+  const cacheMb=(Math.random()*400+180).toFixed(0);
+  const junkFiles=Math.round(Math.random()*90+40);
+  await runProcess({
+    label:'MEMBERSIHKAN SISTEM',
+    detailSteps:['Menganalisis cache aplikasi…','Menghapus file sementara…','Membersihkan junk file…','Merapikan penyimpanan…'],
+    duration:3000,
+    iconSvg:'<svg viewBox="0 0 24 24" fill="none"><path d="M4 20l5-5M14 5l5 5-9.5 9.5a2 2 0 01-2.8 0L4 17.8a2 2 0 010-2.8L14 5z" stroke="#00aaff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  });
+  document.getElementById('cleanerSub').textContent = `${cacheMb} MB cache & ${junkFiles} junk file dibersihkan`;
+  showToast('Pembersihan selesai', `${cacheMb} MB terbebas, ${junkFiles} file sampah dihapus`);
+});
+
+/* ===================== TOGGLES ===================== */
+function bindToggle(id, onLabelUpdate){
+  const el=document.getElementById(id);
+  let on=false;
+  el.addEventListener('click', ()=>{
+    on=!on;
+    el.classList.toggle('on',on);
+    if(on){ sndToggleOn(); } else { sndToggleOff(); }
+    if(onLabelUpdate) onLabelUpdate(on);
+  });
+}
+bindToggle('toggleTouch');
+bindToggle('toggleFps');
+bindToggle('toggleDrag', (on)=>{
+  showToast(on ? 'Drag iOS aktif' : 'Drag iOS nonaktif', on ? 'Sensitivitas drag disesuaikan ala iOS' : 'Kembali ke pengaturan drag standar');
+});
+
+/* ===================== NETWORK OPTIMIZERS ===================== */
+document.getElementById('btnWifi').addEventListener('click', async ()=>{
+  sndClick();
+  const before=14+Math.round(Math.random()*20);
+  const after=Math.max(6,before-Math.round(Math.random()*8+5));
+  await runProcess({
+    label:'OPTIMASI JARINGAN WIFI',
+    detailSteps:['Memindai sinyal WiFi…','Mengatur ulang buffer jaringan…','Menstabilkan koneksi…'],
+    duration:2000,
+    iconSvg:'<svg viewBox="0 0 24 24" fill="none"><path d="M2 8.5C7 3.8 17 3.8 22 8.5" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><path d="M5.5 12C9 8.8 15 8.8 18.5 12" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><path d="M9 15.5C10.9 13.8 13.1 13.8 15 15.5" stroke="#00aaff" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="19" r="1.4" fill="#00aaff"/></svg>'
+  });
+  document.getElementById('wifiSub').textContent=`Latensi turun dari ${before}ms ke ${after}ms`;
+  showToast('WiFi dioptimalkan', `Latensi membaik ${before}ms → ${after}ms`);
+});
+
+document.getElementById('btnData').addEventListener('click', async ()=>{
+  sndClick();
+  const before=20+Math.round(Math.random()*24);
+  const after=Math.max(8,before-Math.round(Math.random()*10+6));
+  await runProcess({
+    label:'OPTIMASI JARINGAN DATA',
+    detailSteps:['Mendeteksi operator seluler…','Menyesuaikan prioritas paket data…','Menstabilkan koneksi…'],
+    duration:2000,
+    iconSvg:'<svg viewBox="0 0 24 24" fill="none"><rect x="6" y="3" width="12" height="18" rx="2.5" stroke="#0066ff" stroke-width="1.6"/><path d="M10 18h4" stroke="#0066ff" stroke-width="1.6" stroke-linecap="round"/></svg>'
+  });
+  document.getElementById('dataSub').textContent=`Latensi turun dari ${before}ms ke ${after}ms`;
+  showToast('Data dioptimalkan', `Latensi membaik ${before}ms → ${after}ms`);
+});
+
+/* ===================== BOOSTER UR GAME ===================== */
+const sheetBackdrop=document.getElementById('sheetBackdrop');
+document.getElementById('btnBoosterGame').addEventListener('click', ()=>{
+  sndClick();
+  sheetBackdrop.classList.add('show');
+});
+sheetBackdrop.addEventListener('click', (e)=>{
+  if(e.target===sheetBackdrop){ sheetBackdrop.classList.remove('show'); }
+});
+document.querySelectorAll('.game-opt').forEach(opt=>{
+  opt.addEventListener('click', async ()=>{
+    sndClick();
+    const game=opt.dataset.game;
+    sheetBackdrop.classList.remove('show');
+    const name = game==='ff' ? 'Free Fire' : 'Free Fire MAX';
+    const scheme = game==='ff' ? 'freefire://' : 'freefiremax://';
+
+    await runProcess({
+      label:'BOOSTER UR GAME',
+      detailSteps:[`Mengoptimalkan performa untuk ${name}…`,'Mengalokasikan RAM prioritas…','Meningkatkan FPS target…'],
+      duration:3000,
+      iconSvg:'<svg viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h7l-1 8 10-13h-7l1-7z" fill="#00ddff"/></svg>'
+    });
+
+    sndWhoosh();
+    showToast(`Membuka ${name}`, 'Booster aktif — meluncurkan game…');
+    setTimeout(()=>{
+      window.location.href = scheme;
+    }, 300);
+  });
+});
+
+/* ===================== TOGGLES AIMDRAG HS, FIX RECOIL, STABILIZER, SENSITIVITY, HEADLOCK ===================== */
+bindToggle('toggleAimdrag', (on) => {
+  showToast(on ? 'Aimdrag HS aktif' : 'Aimdrag HS nonaktif', on ? 'Headshot lebih mudah dengan aimdrag presisi' : 'Mode aimdrag dinonaktifkan');
+});
+bindToggle('toggleRecoil', (on) => {
+  showToast(on ? 'Fix Recoil 35% aktif' : 'Fix Recoil 35% nonaktif', on ? 'Recoil dikurangi 35% untuk semua senjata' : 'Recoil kembali normal');
+});
+bindToggle('toggleStabilizer', (on) => {
+  showToast(on ? 'Stabilizer Aim aktif' : 'Stabilizer Aim nonaktif', on ? 'Bidikan lebih stabil dan minim goyangan' : 'Stabilizer dinonaktifkan');
+});
+bindToggle('toggleSensitivity', (on) => {
+  showToast(on ? 'Sensitivity Max aktif' : 'Sensitivity Max nonaktif', on ? 'Sensitivitas maksimum untuk rotasi cepat' : 'Sensitivitas kembali normal');
+});
+bindToggle('toggleHeadlock', (on) => {
+  showToast(on ? 'NEW HEADLOCK 59% aktif' : 'NEW HEADLOCK  nonaktif', on ? 'Lock ke kepala musuh dengan akurasi 55%' : 'Headlock dinonaktifkan');
+});
+</script>
+</body>
+</html>
