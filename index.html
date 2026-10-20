@@ -841,7 +841,7 @@ function getDeviceId(){
 document.getElementById('btnLogin').addEventListener('click', async ()=>{
   sndClick();
   const u = document.getElementById('inpUser').value.trim();
-  const k = document.getElementById('inpKey').value.trim();
+  const k = document.getElementById('inpKey').value.trim().toUpperCase();
   const err = document.getElementById('loginError');
   const btn = document.getElementById('btnLogin');
 
@@ -855,39 +855,28 @@ document.getElementById('btnLogin').addEventListener('click', async ()=>{
   btn.textContent = 'MEMERIKSA...';
 
   try{
-    const { data, error } = await sb
-      .from('licenses')
-      .select('*')
-      .eq('license_key', k)
-      .maybeSingle();
+    const { data: activated, error } = await sb.rpc('activate_license', {
+      p_license_key: k,
+      p_device_id: getDeviceId(),
+      p_username: u || null,
+      p_installation_id: null
+    });
 
-    if(error) throw error;
-
-    if(!data){
-      showLoginError('Key tidak ditemukan.');
+    if(error){
+      console.error('activate_license RPC error:', error);
+      const message = String(error.message || '');
+      if(error.code === 'PGRST202' || message.toLowerCase().includes('could not find the function')){
+        showLoginError('Fungsi aktivasi belum tersedia. Periksa SQL activate_license dan reload schema Supabase.');
+      }else if(message.includes('device_id') || message.includes('installation_id')){
+        showLoginError('Kolom perangkat belum tersedia di tabel licenses.');
+      }else{
+        showLoginError(`Gagal verifikasi (${error.code || 'Supabase'}): ${message || 'Periksa koneksi dan konfigurasi.'}`);
+      }
       return;
     }
 
-    if(data.status === 'banned'){
-      showLoginError('Key ini telah diblokir.');
-      return;
-    }
-
-    const deviceId = getDeviceId();
-
-    if(!data.device_id){
-      const { error: updateErr } = await sb
-        .from('licenses')
-        .update({ device_id: deviceId, status: 'active', username: u || data.username })
-        .eq('id', data.id);
-
-      if(updateErr) throw updateErr;
-
-    } else if(data.device_id !== deviceId){
-      showLoginError('Key sudah digunakan di device lain.');
-      return;
-    } else if(data.status !== 'active'){
-      showLoginError('Key tidak aktif. Hubungi admin.');
+    if(activated !== true){
+      showLoginError('Key tidak valid, kedaluwarsa, diblokir, atau terikat ke perangkat lain.');
       return;
     }
 
